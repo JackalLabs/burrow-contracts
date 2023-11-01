@@ -1,5 +1,7 @@
 package types
 
+import "github.com/CosmWasm/cosmwasm-go/std/types"
+
 type InitMsg struct {
 	Admins  string `json:"admins"`
 	Mutable bool   `json:"mutable"`
@@ -28,8 +30,7 @@ type QueryMsg struct {
 
 // Requests
 type Execute struct {
-	// Msgs []CosmosMsg `json:"msgs,omitempty"`
-	// !todo we need CosmosMsg somehow https://docs.rs/cosmwasm-std/latest/cosmwasm_std/enum.CosmosMsg.html
+	Msgs []types.CosmosMsg `json:"msgs,omitempty"`
 }
 
 type Freeze struct{}
@@ -41,8 +42,8 @@ type UpdateAdmins struct {
 type AdminList struct{}
 
 type CanExecute struct {
-	Sender string `json:"sender,omitempty"`
-	// Msg    CosmosMsg `json:"msg,omitempty"`
+	Sender string          `json:"sender,omitempty"`
+	Msg    types.CosmosMsg `json:"msg,omitempty"`
 }
 
 // Responses
