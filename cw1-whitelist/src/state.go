@@ -8,10 +8,10 @@ import (
 	"github.com/CosmWasm/cosmwasm-go/std"
 )
 
-var StateKey = []byte("config")
+var ADMIN_LIST = []byte("admin_list")
 
 func LoadState(storage std.Storage) (*types.State, error) {
-	data := storage.Get(StateKey)
+	data := storage.Get(ADMIN_LIST)
 	if data == nil {
 		return nil, errors.New("state not found") // TODO(fdymylja): replace when errors API is ready
 	}
@@ -30,7 +30,7 @@ func SaveState(storage std.Storage, state *types.State) error {
 		return err
 	}
 
-	storage.Set(StateKey, bz)
+	storage.Set(ADMIN_LIST, bz)
 
 	return nil
 }

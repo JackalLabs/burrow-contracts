@@ -20,8 +20,9 @@ func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, msg []by
 		return nil, err
 	}
 
-	state := contractTypes.State{
-		ExampleStateField: initMsg.ExampleDetails,
+	state := contractTypes.AdminList{
+		Admins:  initMsg.Admins,
+		Mutable: initMsg.Mutable,
 	}
 
 	err = SaveState(deps.Storage, &state)
@@ -30,7 +31,7 @@ func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, msg []by
 	}
 	res := &types.Response{
 		Attributes: []types.EventAttribute{
-			{"example_details", initMsg.ExampleDetails},
+			{"success", true},
 		},
 	}
 	return res, nil
@@ -41,7 +42,7 @@ func Migrate(deps *std.Deps, env types.Env, msg []byte) (*types.Response, error)
 }
 
 func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte) (*types.Response, error) {
-	msg := contractTypes.HandleMsg{}
+	msg := contractTypes.ExecuteMsg{}
 	err := msg.UnmarshalJSON(data)
 	if err != nil {
 		return nil, err
@@ -52,7 +53,7 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte)
 	case msg.ExampleMsg != nil:
 		return executeExample(deps, &env, &info, msg.ExampleMsg)
 	default:
-		return nil, types.GenericError("Unknown HandleMsg")
+		return nil, types.GenericError("Unknown ExecuteMsg")
 	}
 }
 
