@@ -1,31 +1,56 @@
 package types
 
 type InitMsg struct {
-	ExampleDetails string `json:"example_details"`
+	Admins  string `json:"admins"`
+	Mutable bool   `json:"mutable"`
 }
 
 type MigrateMsg struct{}
 
-type HandleMsg struct {
-	ExampleMsg *ExampleMsgReqeust `json:"example_msg,omitempty"`
+type ExecuteMsg struct {
+	/// Execute requests the contract to re-dispatch all these messages with the
+	/// contract's address as sender. Every implementation has it's own logic to
+	/// determine in
+	Execute *Execute `json:"execute,omitempty"`
+
+	/// Freeze will make a mutable contract immutable, must be called by an admin
+	Freeze *Freeze `json:"freeze,omitempty"`
+
+	/// UpdateAdmins will change the admin set of the contract, must be called by an existing admin,
+	/// and only works if the contract is mutable
+	UpdateAdmins *UpdateAdmins `json:"update_admins,omitempty"`
 }
 
 type QueryMsg struct {
-	ExampleQuery *ExampleQueryRequest `json:"example_query,omitempty"`
+	AdminList  *AdminList  `json:"admin_list,omitempty"`
+	CanExecute *CanExecute `json:"can_execute,omitempty"`
 }
 
-type ExampleMsgReqeust struct {
-	ExampleField string `json:"example_field,omitempty"`
+// Requests
+type Execute struct {
+	// Msgs []CosmosMsg `json:"msgs,omitempty"`
+	// !todo we need CosmosMsg somehow https://docs.rs/cosmwasm-std/latest/cosmwasm_std/enum.CosmosMsg.html
 }
 
-type ExampleMsgResponse struct {
-	ExampleField string `json:"example_field,omitempty"`
+type Freeze struct{}
+
+type UpdateAdmins struct {
+	Admins []string `json:"admins,omitempty"`
 }
 
-type ExampleQueryRequest struct {
-	ExampleField string `json:"example_field,omitempty"`
+type AdminList struct{}
+
+type CanExecute struct {
+	Sender string `json:"sender,omitempty"`
+	// Msg    CosmosMsg `json:"msg,omitempty"`
 }
 
-type ExampleQueryResponse struct {
-	ExampleField string `json:"example_field,omitempty"`
+// Responses
+type AdminListResponse struct {
+	Admins  string `json:"admins,omitempty"`
+	Mutable bool   `json:"mutable,omitempty"`
 }
+
+// type ExampleQueryResponse struct {
+// 	ExampleField string `json:"example_field,omitempty"`
+// }
