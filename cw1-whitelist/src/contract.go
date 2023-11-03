@@ -100,10 +100,7 @@ func executeExecute(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg
 		return nil, err
 	}
 
-	state.isAdmin(sender)
-
-	err := example(deps, info.Sender)
-	if err != nil {
+	if !state.IsAdmin(sender) {
 		return nil, err
 	}
 
@@ -111,17 +108,65 @@ func executeExecute(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg
 
 	deps.Api.Debug(msg.Msgs)
 
-	return &types.Response{
+	res := &types.Response{
 		Attributes: []types.EventAttribute{
-			{"action", "example"},
+			{"action", "execute"},
 		},
-	}, nil
+		Messages: []types.SubMsg{msg},
+	}
+	return res, nil
 }
 
-func executeFreeze(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.ExecuteRequest) (*types.Response, error) {
-	// !todo
+func executeFreeze(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.FreezeRequest) (*types.Response, error) {
+	sender := info.Sender
+
+	state, err := LoadState(deps.Storage)
+	if err != nil {
+		return nil, err
+	}
+
+	if !state.IsAdmin(sender) {
+		return nil, err
+	}
+
+	state.Mutable = false
+
+	err = SaveState(deps.Storage, state)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &types.Response{
+		Attributes: []types.EventAttribute{
+			{"action", "freeze"},
+		},
+	}
+	return res, nil
 }
 
-func executeUpdateAdmins(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.ExecuteRequest) (*types.Response, error) {
-	// !todo
+func executeUpdateAdmins(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.UpdateAdminsRequest) (*types.Response, error) {
+	sender := info.Sender
+
+	state, err := LoadState(deps.Storage)
+	if err != nil {
+		return nil, err
+	}
+
+	if !state.CanModify(sender) {
+		return nil, err
+	}
+
+	state.Admins = msg.Admins
+
+	err = SaveState(deps.Storage, state)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &types.Response{
+		Attributes: []types.EventAttribute{
+			{"action", "freeze"},
+		},
+	}
+	return res, nil
 }

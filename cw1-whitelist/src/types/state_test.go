@@ -38,7 +38,7 @@ var tt = []testCase{
 func TestIsAdmin(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.requester, func(t *testing.T) {
-			result := tc.adminList.isAdmin(tc.requester)
+			result := tc.adminList.IsAdmin(tc.requester)
 			assertEqual(t, result, tc.expect)
 		})
 	}
@@ -74,7 +74,7 @@ var tt2 = []testCase{
 func TestCanModify(t *testing.T) {
 	for _, tc := range tt2 {
 		t.Run(tc.requester, func(t *testing.T) {
-			result := tc.adminList.canModify(tc.requester)
+			result := tc.adminList.CanModify(tc.requester)
 			assertEqual(t, result, tc.expect)
 		})
 	}

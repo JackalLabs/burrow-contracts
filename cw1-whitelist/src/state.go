@@ -10,7 +10,7 @@ import (
 
 var ADMIN_LIST = []byte("admin_list")
 
-func LoadState(storage std.Storage) (contractTypes.AdminList, error) {
+func LoadState(storage std.Storage) (*contractTypes.AdminList, error) {
 	data := storage.Get(ADMIN_LIST)
 	if data == nil {
 		return nil, errors.New("state not found") // TODO(fdymylja): replace when errors API is ready

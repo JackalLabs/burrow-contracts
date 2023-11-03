@@ -11,11 +11,11 @@ type AdminList struct {
 	Mutable bool     `json:"mutable"`
 }
 
-func (a AdminList) isAdmin(addr string) bool {
+func (a AdminList) IsAdmin(addr string) bool {
 	contain := slices.Contains(a.Admins, addr)
 	return contain
 }
 
-func (a AdminList) canModify(addr string) bool {
-	return a.isAdmin(addr) && a.Mutable
+func (a AdminList) CanModify(addr string) bool {
+	return a.IsAdmin(addr) && a.Mutable
 }
