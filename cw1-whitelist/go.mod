@@ -1,4 +1,4 @@
-module github.com/JackalLabs/burrow-contracts/example
+module github.com/JackalLabs/burrow-contracts/cw1-whitelist
 
 go 1.21
 
