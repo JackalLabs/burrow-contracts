@@ -24,8 +24,8 @@ type ExecuteMsg struct {
 }
 
 type QueryMsg struct {
-	QueryAdminList  *QueryAdminList  `json:"admin_list,omitempty"`
-	QueryCanExecute *QueryCanExecute `json:"can_execute,omitempty"`
+	QueryAdminListRequest  *QueryAdminListRequest  `json:"admin_list,omitempty"`
+	QueryCanExecuteRequest *QueryCanExecuteRequest `json:"can_execute,omitempty"`
 }
 
 // Requests
@@ -39,19 +39,19 @@ type UpdateAdminsRequest struct {
 	Admins []string `json:"admins,omitempty"`
 }
 
-type QueryAdminList struct{}
+type QueryAdminListRequest struct{}
 
-type QueryCanExecute struct {
+type QueryCanExecuteRequest struct {
 	Sender string          `json:"sender,omitempty"`
 	Msg    types.CosmosMsg `json:"msg,omitempty"`
 }
 
 // Responses
 type AdminListResponse struct {
-	Admins  string `json:"admins,omitempty"`
-	Mutable bool   `json:"mutable,omitempty"`
+	Admins  []string `json:"admins,omitempty"`
+	Mutable bool     `json:"mutable,omitempty"`
 }
 
-// type ExampleQueryResponse struct {
-// 	ExampleField string `json:"example_field,omitempty"`
-// }
+type CanExecuteResponse struct {
+	CanExecute bool `json:"can_execute,omitempty"`
+}

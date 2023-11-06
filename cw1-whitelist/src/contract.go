@@ -66,7 +66,6 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte)
 
 func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 	msg := contractTypes.QueryMsg{}
-	// err := msg.UnmarshalJSON(data)
 	err := json.Unmarshal(data, msg)
 	if err != nil {
 		return nil, err
@@ -75,8 +74,10 @@ func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 	// we need to find which one is non-empty
 	var res std.JSONType
 	switch {
-	case msg.ExampleQuery != nil:
-		res, err = queryExample(deps, &env, msg.ExampleQuery)
+	case msg.QueryAdminListRequest != nil:
+		res, err = queryAdminList(deps, &env, msg.QueryAdminListRequest)
+	case msg.QueryCanExecuteRequest != nil:
+		res, err = queryCanExecute(deps, &env, msg.QueryCanExecuteRequest)
 	default:
 		err = types.GenericError("Unknown QueryMsg " + string(data))
 	}
@@ -169,4 +170,34 @@ func executeUpdateAdmins(deps *std.Deps, env *types.Env, info *types.MessageInfo
 		},
 	}
 	return res, nil
+}
+
+func queryAdminList(deps *std.Deps, env *types.Env, msg *contractTypes.QueryAdminListRequest) (*contractTypes.AdminListResponse, error) {
+	state, err := LoadState(deps.Storage)
+	if err != nil {
+		return nil, err
+	}
+
+	_ = env
+	_ = msg
+
+	return &contractTypes.AdminListResponse{
+		Admins:  state.Admins,
+		Mutable: state.Mutable,
+	}, nil
+}
+
+func queryCanExecute(deps *std.Deps, env *types.Env, msg *contractTypes.QueryCanExecuteRequest) (*contractTypes.CanExecuteResponse, error) {
+	state, err := LoadState(deps.Storage)
+	if err != nil {
+		return nil, err
+	}
+
+	can := state.IsAdmin(msg.Sender)
+
+	_ = env
+
+	return &contractTypes.CanExecuteResponse{
+		CanExecute: can,
+	}, nil
 }
