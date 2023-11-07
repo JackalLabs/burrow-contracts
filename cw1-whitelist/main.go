@@ -4,7 +4,7 @@ import (
 	"unsafe"
 
 	"github.com/CosmWasm/cosmwasm-go/std"
-	"github.com/JackalLabs/burrow-contracts/example/src"
+	"github.com/JackalLabs/burrow-contracts/cw1-whitelist/src"
 )
 
 func main() {}

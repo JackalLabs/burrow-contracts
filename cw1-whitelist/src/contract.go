@@ -1,7 +1,6 @@
 package src
 
 import (
-	"encoding/json"
 	"errors"
 
 	contractTypes "github.com/JackalLabs/burrow-contracts/cw1-whitelist/src/types"
@@ -10,14 +9,13 @@ import (
 	"github.com/CosmWasm/cosmwasm-go/std/types"
 )
 
-var _ std.InstantiateFunc = Instantiate
+// var _ std.InstantiateFunc = Instantiate
 
 func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte) (*types.Response, error) {
 	deps.Api.Debug("Launching Example! 🚀")
 
 	initMsg := contractTypes.InitMsg{}
-	// err := initMsg.UnmarshalJSON(msg)
-	err := json.Unmarshal(data, initMsg)
+	err := initMsg.UnmarshalJSON(data)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +31,7 @@ func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, data []b
 	}
 	res := &types.Response{
 		Attributes: []types.EventAttribute{
-			{"success", true},
+			{Key: "success", Value: "true"},
 		},
 	}
 	return res, nil
@@ -45,8 +43,7 @@ func Migrate(deps *std.Deps, env types.Env, msg []byte) (*types.Response, error)
 
 func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte) (*types.Response, error) {
 	msg := contractTypes.ExecuteMsg{}
-	// err := msg.UnmarshalJSON(data)
-	err := json.Unmarshal(data, msg)
+	err := msg.UnmarshalJSON(data)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +63,7 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte)
 
 func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 	msg := contractTypes.QueryMsg{}
-	err := json.Unmarshal(data, msg)
+	err := msg.UnmarshalJSON(data)
 	if err != nil {
 		return nil, err
 	}
@@ -107,13 +104,18 @@ func executeExecute(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg
 
 	_ = env
 
-	deps.Api.Debug(msg.Msgs)
+	var messages []types.SubMsg
+
+	for _, msg := range msg.Msgs {
+		newSub := types.NewSubMsg(msg)
+		messages = append(messages, newSub)
+	}
 
 	res := &types.Response{
 		Attributes: []types.EventAttribute{
-			{"action", "execute"},
+			{Key: "action", Value: "execute"},
 		},
-		Messages: []types.SubMsg{msg},
+		Messages: messages,
 	}
 	return res, nil
 }
@@ -139,7 +141,7 @@ func executeFreeze(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg 
 
 	res := &types.Response{
 		Attributes: []types.EventAttribute{
-			{"action", "freeze"},
+			{Key: "action", Value: "freeze"},
 		},
 	}
 	return res, nil
@@ -166,7 +168,7 @@ func executeUpdateAdmins(deps *std.Deps, env *types.Env, info *types.MessageInfo
 
 	res := &types.Response{
 		Attributes: []types.EventAttribute{
-			{"action", "freeze"},
+			{Key: "action", Value: "freeze"},
 		},
 	}
 	return res, nil
