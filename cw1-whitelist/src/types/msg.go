@@ -48,10 +48,10 @@ type QueryCanExecuteRequest struct {
 
 // Responses
 type AdminListResponse struct {
-	Admins  []string `json:"admins,omitempty"`
-	Mutable bool     `json:"mutable,omitempty"`
+	Admins  []string `json:"admins"`
+	Mutable bool     `json:"mutable"`
 }
 
 type CanExecuteResponse struct {
-	CanExecute bool `json:"can_execute,omitempty"`
+	CanExecute bool `json:"can_execute"`
 }
