@@ -1,7 +1,6 @@
 package src
 
 import (
-	"encoding/json"
 	"errors"
 
 	"github.com/CosmWasm/cosmwasm-go/std"
@@ -17,7 +16,7 @@ func LoadState(storage std.Storage) (*contractTypes.AdminList, error) {
 	}
 
 	var state contractTypes.AdminList
-	err := json.Unmarshal(data, state)
+	err := state.UnmarshalJSON(data)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +25,7 @@ func LoadState(storage std.Storage) (*contractTypes.AdminList, error) {
 }
 
 func SaveState(storage std.Storage, state *contractTypes.AdminList) error {
-	bz, err := json.Marshal(state)
+	bz, err := state.MarshalJSON()
 	if err != nil {
 		return err
 	}
