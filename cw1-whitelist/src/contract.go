@@ -99,7 +99,7 @@ func executeExecute(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg
 	}
 
 	if !state.IsAdmin(sender) {
-		return nil, err
+		return nil, errors.New("Unauthorized")
 	}
 
 	_ = env
@@ -129,7 +129,7 @@ func executeFreeze(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg 
 	}
 
 	if !state.IsAdmin(sender) {
-		return nil, err
+		return nil, errors.New("Unauthorized")
 	}
 
 	state.Mutable = false
@@ -156,7 +156,7 @@ func executeUpdateAdmins(deps *std.Deps, env *types.Env, info *types.MessageInfo
 	}
 
 	if !state.CanModify(sender) {
-		return nil, err
+		return nil, errors.New("Can't update admin list")
 	}
 
 	state.Admins = msg.Admins
@@ -168,7 +168,7 @@ func executeUpdateAdmins(deps *std.Deps, env *types.Env, info *types.MessageInfo
 
 	res := &types.Response{
 		Attributes: []types.EventAttribute{
-			{Key: "action", Value: "freeze"},
+			{Key: "action", Value: "update_admins"},
 		},
 	}
 	return res, nil

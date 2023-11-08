@@ -43,13 +43,12 @@ func defaultInit(t *testing.T, funds []types.Coin) (*std.Deps, types.Env) {
 	return deps, env
 }
 
-func TestInitAndQuery(t *testing.T) {
+func TestInitAndModify(t *testing.T) {
 	deps, env := defaultInit(t, FUND)
 
 	// Query Admin List
 	qmsg := []byte(`{"admin_list":{}}`)
 	data, err := Query(deps, env, qmsg)
-
 	require.NoError(t, err)
 
 	var qres contractTypes.AdminListResponse
@@ -57,4 +56,46 @@ func TestInitAndQuery(t *testing.T) {
 	err = json.Unmarshal(data, &qres)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"alice", "bob", "charlie"}, qres.Admins)
+
+	// Alice can modify Admin List
+	info := mock.Info("alice", nil)
+	emsg := []byte(`{"update_admins":{"admins": ["alice", "bob", "new_intern"]}}`)
+
+	res, err := Execute(deps, env, info, emsg)
+	require.NoError(t, err)
+	assert.Equal(t, "update_admins", res.Attributes[0].Value)
+
+	// let's query to check the admin list
+	data, err = Query(deps, env, qmsg)
+	require.NoError(t, err)
+
+	err = json.Unmarshal(data, &qres)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"alice", "bob", "new_intern"}, qres.Admins)
+
+	// Unauthorized user cannot modify Admin List
+	info = mock.Info("ex_employee", nil)
+	emsg = []byte(`{"update_admins":{"admins": ["alice", "bob", "ex_employee"]}}`)
+	res, err = Execute(deps, env, info, emsg)
+	require.EqualError(t, err, "Can't update admin list")
+
+	// Charlie cannot freeze the contract
+	info = mock.Info("charlie", nil)
+	emsg = []byte(`{"freeze":{}}`)
+	res, err = Execute(deps, env, info, emsg)
+	require.EqualError(t, err, "Unauthorized")
+
+	// Bob can freeze the contract
+	info = mock.Info("bob", nil)
+	emsg = []byte(`{"freeze":{}}`)
+	res, err = Execute(deps, env, info, emsg)
+	require.NoError(t, err)
+	assert.Equal(t, "freeze", res.Attributes[0].Value)
+
+	// Now Alice cannot modify Admin List
+	info = mock.Info("alice", nil)
+	emsg = []byte(`{"update_admins":{"admins": ["alice"]}}`)
+
+	res, err = Execute(deps, env, info, emsg)
+	require.EqualError(t, err, "Can't update admin list")
 }
