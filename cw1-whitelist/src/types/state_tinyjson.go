@@ -15,73 +15,7 @@ var (
 	_ tinyjson.Marshaler
 )
 
-func tinyjson4e1b3cc1DecodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes(in *jlexer.Lexer, out *State) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "example_field":
-			out.ExampleStateField = string(in.String())
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func tinyjson4e1b3cc1EncodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes(out *jwriter.Writer, in State) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"example_field\":"
-		out.RawString(prefix[1:])
-		out.String(string(in.ExampleStateField))
-	}
-	out.RawByte('}')
-}
-
-// MarshalJSON supports json.Marshaler interface
-func (v State) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	tinyjson4e1b3cc1EncodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
-
-// MarshalTinyJSON supports tinyjson.Marshaler interface
-func (v State) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjson4e1b3cc1EncodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes(w, v)
-}
-
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *State) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	tinyjson4e1b3cc1DecodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes(&r, v)
-	return r.Error()
-}
-
-// UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
-func (v *State) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjson4e1b3cc1DecodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes(l, v)
-}
-func tinyjson4e1b3cc1DecodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes1(in *jlexer.Lexer, out *AdminList) {
+func tinyjson4e1b3cc1DecodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes(in *jlexer.Lexer, out *AdminList) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -135,7 +69,7 @@ func tinyjson4e1b3cc1DecodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcType
 		in.Consumed()
 	}
 }
-func tinyjson4e1b3cc1EncodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes1(out *jwriter.Writer, in AdminList) {
+func tinyjson4e1b3cc1EncodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes(out *jwriter.Writer, in AdminList) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -166,23 +100,23 @@ func tinyjson4e1b3cc1EncodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcType
 // MarshalJSON supports json.Marshaler interface
 func (v AdminList) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjson4e1b3cc1EncodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes1(&w, v)
+	tinyjson4e1b3cc1EncodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v AdminList) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjson4e1b3cc1EncodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes1(w, v)
+	tinyjson4e1b3cc1EncodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *AdminList) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjson4e1b3cc1DecodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes1(&r, v)
+	tinyjson4e1b3cc1DecodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *AdminList) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjson4e1b3cc1DecodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes1(l, v)
+	tinyjson4e1b3cc1DecodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcTypes(l, v)
 }

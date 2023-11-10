@@ -229,8 +229,6 @@ func tinyjsonF5cd6cf9DecodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcType
 		switch key {
 		case "sender":
 			out.Sender = string(in.String())
-		case "msg":
-			(out.Msg).UnmarshalTinyJSON(in)
 		default:
 			in.SkipRecursive()
 		}
@@ -250,16 +248,6 @@ func tinyjsonF5cd6cf9EncodeGithubComJackalLabsBurrowContractsCw1WhitelistSrcType
 		first = false
 		out.RawString(prefix[1:])
 		out.String(string(in.Sender))
-	}
-	if true {
-		const prefix string = ",\"msg\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
-		(in.Msg).MarshalTinyJSON(out)
 	}
 	out.RawByte('}')
 }

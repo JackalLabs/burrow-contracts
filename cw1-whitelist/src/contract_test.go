@@ -99,3 +99,26 @@ func TestInitAndModify(t *testing.T) {
 	res, err = Execute(deps, env, info, emsg)
 	require.EqualError(t, err, "Can't update admin list")
 }
+
+func TestQueryCanExecute(t *testing.T) {
+	deps, env := defaultInit(t, FUND)
+
+	// carl can't execute
+	qmsg := []byte(`{"can_execute":{"sender":"carl"}}`)
+	data, err := Query(deps, env, qmsg)
+	require.NoError(t, err)
+
+	var qres contractTypes.CanExecuteResponse
+	err = json.Unmarshal(data, &qres)
+	require.NoError(t, err)
+	assert.False(t, qres.CanExecute)
+
+	// but alice can
+	qmsg = []byte(`{"can_execute":{"sender":"alice"}}`)
+	data, err = Query(deps, env, qmsg)
+	require.NoError(t, err)
+
+	err = json.Unmarshal(data, &qres)
+	require.NoError(t, err)
+	assert.True(t, qres.CanExecute)
+}

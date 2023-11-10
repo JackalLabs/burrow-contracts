@@ -42,8 +42,8 @@ type UpdateAdminsRequest struct {
 type QueryAdminListRequest struct{}
 
 type QueryCanExecuteRequest struct {
-	Sender string          `json:"sender,omitempty"`
-	Msg    types.CosmosMsg `json:"msg,omitempty"`
+	Sender string `json:"sender,omitempty"`
+	// Msg    types.CosmosMsg `json:"msg,omitempty"`
 }
 
 // Responses

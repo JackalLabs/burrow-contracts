@@ -12,7 +12,7 @@ import (
 // var _ std.InstantiateFunc = Instantiate
 
 func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte) (*types.Response, error) {
-	deps.Api.Debug("Launching Example! 🚀")
+	deps.Api.Debug("Init done 🚀")
 
 	initMsg := contractTypes.InitMsg{}
 	err := initMsg.UnmarshalJSON(data)

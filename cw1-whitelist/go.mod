@@ -4,12 +4,12 @@ go 1.21
 
 require (
 	github.com/CosmWasm/cosmwasm-go v0.5.1-0.20220822092235-974247a04ac7
+	github.com/CosmWasm/tinyjson v0.9.0
 	github.com/stretchr/testify v1.8.4
 )
 
 require (
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
-	github.com/CosmWasm/tinyjson v0.9.0 // indirect
 	github.com/CosmWasm/wasmvm v1.0.0-rc.0 // indirect
 	github.com/DataDog/zstd v1.4.5 // indirect
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
