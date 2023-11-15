@@ -1,6 +1,7 @@
 package types
 
 import (
+	"reflect"
 	"sort"
 
 	"github.com/CosmWasm/cosmwasm-go/std/types"
@@ -29,7 +30,7 @@ func (n *NativeBalance) Normalize() {
 func removeZeroAmounts(coins []types.Coin) []types.Coin {
 	var result []types.Coin
 	for _, c := range coins {
-		if c.Amount != 0 {
+		if !reflect.ValueOf(c.Amount).IsZero() {
 			result = append(result, c)
 		}
 	}
@@ -48,8 +49,8 @@ func consolidateDuplicates(coins []types.Coin) {
 	var consolidated []types.Coin
 	for i, c := range coins {
 		if i > 0 && c.Denom == coins[i-1].Denom {
-			// Consolidate duplicate denom
-			consolidated[len(consolidated)-1].Amount += c.Amount
+			this := consolidated[len(consolidated)-1]
+			this.Amount.Add(c.Amount)
 		} else {
 			consolidated = append(consolidated, c)
 		}

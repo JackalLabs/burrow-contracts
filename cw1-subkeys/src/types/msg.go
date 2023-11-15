@@ -4,7 +4,6 @@ import (
 	"sort"
 
 	"github.com/CosmWasm/cosmwasm-go/std/types"
-	contractTypes "github.com/JackalLabs/burrow-contracts/cw1-subkeys/src/types"
 )
 
 type ExecuteMsg struct {
@@ -75,7 +74,7 @@ type DecreaseAllowance struct {
 }
 type SetPermissions struct {
 	Spender     string
-	Permissions contractTypes.Permissions
+	Permissions Permissions
 }
 
 type QueryAdminListRequest struct{}
@@ -131,9 +130,9 @@ func (r AllAllowancesResponse) Canonical() AllAllowancesResponse {
 }
 
 type AllowanceInfo struct {
-	Spender string                      `json:"spender"`
-	Balance contractTypes.NativeBalance `json:"balance"`
-	Expires contractTypes.Expiration    `json:"expires"`
+	Spender string        `json:"spender"`
+	Balance NativeBalance `json:"balance"`
+	Expires Expiration    `json:"expires"`
 }
 
 func (i AllowanceInfo) CmpBySpender(other AllowanceInfo) bool {
@@ -151,8 +150,8 @@ type AllPermissionsResponse struct {
 }
 
 type PermissionInfo struct {
-	Spender     string                    `json:"spender"`
-	Permissions contractTypes.Permissions `json:"permissions"`
+	Spender     string      `json:"spender"`
+	Permissions Permissions `json:"permissions"`
 }
 
 func (i PermissionInfo) CmpBySpender(other PermissionInfo) bool {
