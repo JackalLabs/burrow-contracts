@@ -1,6 +1,8 @@
 package types
 
 import (
+	"sort"
+
 	"github.com/CosmWasm/cosmwasm-go/std/types"
 	contractTypes "github.com/JackalLabs/burrow-contracts/cw1-subkeys/src/types"
 )
@@ -36,6 +38,18 @@ type QueryMsg struct {
 	/// If CanExecute returns true then a call to `Execute` with the same message,
 	/// before any further state changes, should also succeed.
 	QueryCanExecuteRequest *QueryCanExecuteRequest `json:"can_execute,omitempty"`
+
+	/// Get the current allowance for the given subkey (how much it can spend)
+	QueryAllowance *QueryAllowance `json:"allowance,omitempty"`
+
+	/// Get the current permissions for the given subkey (how much it can spend)
+	QueryPermissions *QueryPermissions `json:"permissions,omitempty"`
+
+	/// Gets all Allowances for this contract
+	QueryAllAllowance *QueryAllAllowance `json:"all_allowance,omitempty"`
+
+	/// Gets all Permissions for this contract
+	QueryAllPermissions *QueryAllPermissions `json:"all_permissions,omitempty"`
 }
 
 // Requests
@@ -47,13 +61,6 @@ type FreezeRequest struct{}
 
 type UpdateAdminsRequest struct {
 	Admins []string `json:"admins,omitempty"`
-}
-
-type QueryAdminListRequest struct{}
-
-type QueryCanExecuteRequest struct {
-	Sender string `json:"sender,omitempty"`
-	// Msg    types.CosmosMsg `json:"msg,omitempty"`
 }
 
 type IncreaseAllowance struct {
@@ -71,6 +78,31 @@ type SetPermissions struct {
 	Permissions contractTypes.Permissions
 }
 
+type QueryAdminListRequest struct{}
+
+type QueryCanExecuteRequest struct {
+	Sender string          `json:"sender,omitempty"`
+	Msg    types.CosmosMsg `json:"msg,omitempty"`
+}
+
+type QueryAllowance struct {
+	Spender string `json:"spender,omitempty"`
+}
+
+type QueryPermissions struct {
+	Spender string `json:"spender,omitempty"`
+}
+
+type QueryAllAllowance struct {
+	StartAfter string `json:"start_after,omitempty"`
+	Limit      uint32 `json:"limit,omitempty"`
+}
+
+type QueryAllPermissions struct {
+	StartAfter string `json:"start_after,omitempty"`
+	Limit      uint32 `json:"limit,omitempty"`
+}
+
 // Responses
 type AdminListResponse struct {
 	Admins  []string `json:"admins"`
@@ -79,4 +111,50 @@ type AdminListResponse struct {
 
 type CanExecuteResponse struct {
 	CanExecute bool `json:"can_execute"`
+}
+
+// / -Allowance
+type AllAllowancesResponse struct {
+	Allowances []AllowanceInfo `json:"allowances"`
+}
+
+func (r AllAllowancesResponse) Canonical() AllAllowancesResponse {
+	for i := range r.Allowances {
+		r.Allowances[i] = r.Allowances[i].Canonical()
+	}
+
+	sort.Slice(r.Allowances, func(i, j int) bool {
+		return r.Allowances[i].CmpBySpender(r.Allowances[j])
+	})
+
+	return r
+}
+
+type AllowanceInfo struct {
+	Spender string                      `json:"spender"`
+	Balance contractTypes.NativeBalance `json:"balance"`
+	Expires contractTypes.Expiration    `json:"expires"`
+}
+
+func (i AllowanceInfo) CmpBySpender(other AllowanceInfo) bool {
+	return i.Spender < other.Spender
+}
+
+func (i AllowanceInfo) Canonical() AllowanceInfo {
+	i.Balance.Normalize()
+	return i
+}
+
+// / -Permission
+type AllPermissionsResponse struct {
+	Permissions []PermissionInfo `json:"permissions"`
+}
+
+type PermissionInfo struct {
+	Spender     string                    `json:"spender"`
+	Permissions contractTypes.Permissions `json:"permissions"`
+}
+
+func (i PermissionInfo) CmpBySpender(other PermissionInfo) bool {
+	return i.Spender < other.Spender
 }
