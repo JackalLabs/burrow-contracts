@@ -8,9 +8,36 @@ import (
 )
 
 var (
-	PERMISSIONS = []byte("permissions")
-	ALLOWANCES  = []byte("allowances")
+	PERMISSIONS   = []byte("permissions")
+	ALLOWANCES    = []byte("allowances")
+	CONTRACT_INFO = []byte("contract_info")
 )
+
+func LoadContractInfo(storage std.Storage) (*contractTypes.ContractInfo, error) {
+	data := storage.Get(CONTRACT_INFO)
+	if data == nil {
+		return nil, errors.New("state not found")
+	}
+
+	var state contractTypes.ContractInfo
+	err := state.UnmarshalJSON(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &state, nil
+}
+
+func SaveContractInfo(storage std.Storage, state *contractTypes.ContractInfo) error {
+	bz, err := state.MarshalJSON()
+	if err != nil {
+		return err
+	}
+
+	storage.Set(CONTRACT_INFO, bz)
+
+	return nil
+}
 
 func LoadPermissions(storage std.Storage) (*contractTypes.Permissions, error) {
 	data := storage.Get(PERMISSIONS)

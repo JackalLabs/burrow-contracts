@@ -11,3 +11,8 @@ type Allowances struct {
 	Balance NativeBalance `json:"native_balance"`
 	Expires Expiration    `json:"expiration"`
 }
+
+type ContractInfo struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+}
