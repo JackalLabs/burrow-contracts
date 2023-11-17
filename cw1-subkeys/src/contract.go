@@ -2,39 +2,42 @@ package src
 
 import (
 	"errors"
+	"os"
 
 	contractTypes "github.com/JackalLabs/burrow-contracts/cw1-subkeys/src/types"
 
 	"github.com/CosmWasm/cosmwasm-go/std"
 	"github.com/CosmWasm/cosmwasm-go/std/types"
+
+	cw1WhiteList "github.com/JackalLabs/burrow-contracts/cw1-whitelist/src"
 )
 
 // var _ std.InstantiateFunc = Instantiate
 
 func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte) (*types.Response, error) {
-	deps.Api.Debug("Init done 🚀")
-
-	initMsg := contractTypes.InitMsg{}
-	err := initMsg.UnmarshalJSON(data)
+	res, err := cw1WhiteList.Instantiate(deps, env, info, data)
 	if err != nil {
 		return nil, err
 	}
 
-	state := contractTypes.AdminList{
-		Admins:  initMsg.Admins,
-		Mutable: initMsg.Mutable,
+	// version info for migration info
+	// !toreview https://github.com/CosmWasm/cw-plus/blob/main/contracts/cw1-subkeys/src/contract.rs#L33-L44
+	name := "cw1-subkeys"
+	version := os.Getenv("PKG_VERSION")
+	if len(version) == 0 {
+		panic("No pkg version found")
 	}
+	SetContractVersion(deps, name, version)
 
-	err = SaveState(deps.Storage, &state)
-	if err != nil {
-		return nil, err
-	}
-	res := &types.Response{
-		Attributes: []types.EventAttribute{
-			{Key: "success", Value: "true"},
-		},
-	}
 	return res, nil
+}
+
+func SetContractVersion(deps *std.Deps, name string, version string) {
+	info := contractTypes.ContractInfo{
+		Name:    name,
+		Version: version,
+	}
+	SaveContractInfo(deps.Storage, &info)
 }
 
 func Migrate(deps *std.Deps, env types.Env, msg []byte) (*types.Response, error) {
