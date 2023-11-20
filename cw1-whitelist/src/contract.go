@@ -51,11 +51,11 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte)
 	// we need to find which one is non-empty
 	switch {
 	case msg.ExecuteRequest != nil:
-		return executeExecute(deps, &env, &info, msg.ExecuteRequest)
+		return ExecuteExecute(deps, &env, &info, msg.ExecuteRequest)
 	case msg.FreezeRequest != nil:
-		return executeFreeze(deps, &env, &info, msg.FreezeRequest)
+		return ExecuteFreeze(deps, &env, &info, msg.FreezeRequest)
 	case msg.UpdateAdminsRequest != nil:
-		return executeUpdateAdmins(deps, &env, &info, msg.UpdateAdminsRequest)
+		return ExecuteUpdateAdmins(deps, &env, &info, msg.UpdateAdminsRequest)
 	default:
 		return nil, types.GenericError("Unknown ExecuteMsg")
 	}
