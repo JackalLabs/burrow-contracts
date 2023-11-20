@@ -90,7 +90,7 @@ func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 	return bz, nil
 }
 
-func executeExecute(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.ExecuteRequest) (*types.Response, error) {
+func ExecuteExecute(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.ExecuteRequest) (*types.Response, error) {
 	sender := info.Sender
 
 	state, err := LoadState(deps.Storage)
@@ -120,7 +120,7 @@ func executeExecute(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg
 	return res, nil
 }
 
-func executeFreeze(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.FreezeRequest) (*types.Response, error) {
+func ExecuteFreeze(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.FreezeRequest) (*types.Response, error) {
 	sender := info.Sender
 
 	state, err := LoadState(deps.Storage)
@@ -147,7 +147,7 @@ func executeFreeze(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg 
 	return res, nil
 }
 
-func executeUpdateAdmins(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.UpdateAdminsRequest) (*types.Response, error) {
+func ExecuteUpdateAdmins(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.UpdateAdminsRequest) (*types.Response, error) {
 	sender := info.Sender
 
 	state, err := LoadState(deps.Storage)
