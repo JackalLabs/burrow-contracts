@@ -1,8 +1,10 @@
 package types
 
 import (
+	"errors"
 	"reflect"
 	"sort"
+	"time"
 
 	"github.com/CosmWasm/cosmwasm-go/std/types"
 )
@@ -62,5 +64,88 @@ func consolidateDuplicates(coins []types.Coin) {
 // EXPIRATION
 
 type Expiration struct {
-	// !todo
+	/// AtHeight will expire when `env.block.height` >= height
+	AtHeight uint64
+	/// AtTime will expire when `env.block.time` >= time
+	AtTime time.Time
+	/// Never will never expire. Used to express the empty variant
+	Never bool
 }
+
+type Duration struct {
+	Height uint64
+	Time   uint64
+}
+
+// Adds more time to an Expiration
+func (e Expiration) Add(d Duration) (Expiration, error) {
+	if e.Never {
+		return Expiration{Never: true}, nil
+	}
+
+	switch {
+	case d.Time != 0 && e.AtTime.IsZero():
+		return Expiration{}, errors.New("Cannot add height and time")
+	case d.Height != 0:
+		return Expiration{AtHeight: e.AtHeight + d.Height}, nil
+	case d.Time != 0:
+		return Expiration{AtTime: e.AtTime.Add(time.Second * time.Duration(d.Time))}, nil
+	default:
+		return Expiration{}, errors.New("Invalid Duration")
+	}
+}
+
+// Create an expiration after current block
+func (d Duration) After(block types.BlockInfo) Expiration {
+	switch {
+	case d.Height != 0:
+		return Expiration{AtHeight: block.Height + d.Height}
+	case d.Time != 0:
+		duration := time.Second * time.Duration(d.Time)
+		blockTime := time.Unix(0, int64(block.Time))
+		return Expiration{AtTime: blockTime.Add(duration)}
+	default:
+		return Expiration{}
+	}
+}
+
+// Create a Duration slightly larger than the current one, so we can use it to pass expiration point
+func (d Duration) PlusOne() Duration {
+	switch {
+	case d.Height != 0:
+		return Duration{Height: d.Height + 1}
+	case d.Time != 0:
+		return Duration{Time: d.Time + 1}
+	default:
+		return Duration{}
+	}
+}
+
+// Add adds two Durations.
+func (d Duration) Add(other Duration) (Duration, error) {
+	switch {
+	case d.Time != 0 && other.Time != 0:
+		return Duration{Time: d.Time + other.Time}, nil
+	case d.Height != 0 && other.Height != 0:
+		return Duration{Height: d.Height + other.Height}, nil
+	default:
+		return Duration{}, errors.New("Cannot add height and time")
+	}
+}
+
+// Multiply multiplies a Duration by a scalar.
+func (d Duration) Multiply(v uint64) Duration {
+	switch {
+	case d.Time != 0:
+		return Duration{Time: d.Time * v}
+	case d.Height != 0:
+		return Duration{Height: d.Height * v}
+	default:
+		return Duration{}
+	}
+}
+
+// Compares two Expirations
+// func (e Expiration) PartialCmp (other Expiration) int {
+// 	!todo do we even need this?
+// }
