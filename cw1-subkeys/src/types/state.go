@@ -16,3 +16,7 @@ type ContractInfo struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
 }
+
+type BigMap struct {
+	Keys map[string][]byte
+}

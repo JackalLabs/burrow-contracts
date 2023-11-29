@@ -8,10 +8,140 @@ import (
 )
 
 var (
-	PERMISSIONS   = []byte("permissions")
-	ALLOWANCES    = []byte("allowances")
-	CONTRACT_INFO = []byte("contract_info")
+	PERMISSIONS_MAP = []byte("permissions_map")
+	ALLOWANCES_MAP  = []byte("allowances_map")
+	CONTRACT_INFO   = []byte("contract_info")
 )
+
+func LoadPermissions(storage std.Storage, key string) (*contractTypes.Permissions, error) {
+	// Load storage for map
+	// Map should return a key
+	// Load storage for the value of that key
+	data := storage.Get(PERMISSIONS_MAP)
+	if data == nil {
+		return nil, errors.New("PERMISSIONS_MAP not found")
+	}
+
+	var bigMap contractTypes.BigMap
+	err := bigMap.UnmarshalJSON(data)
+	if err != nil {
+		return nil, errors.New("bigMap not found")
+	}
+
+	byteKey := bigMap.Keys[key]
+	if byteKey == nil {
+		return nil, errors.New("byteKey doesn't exist")
+	}
+
+	data = storage.Get(byteKey)
+	if data == nil {
+		return nil, errors.New("byteKey doesn't have any value")
+	}
+
+	var permissions contractTypes.Permissions
+	err = permissions.UnmarshalJSON(data)
+	if err != nil {
+		return nil, err
+	}
+	return &permissions, nil
+}
+
+func SavePermissions(storage std.Storage, spender string, permissions *contractTypes.Permissions) error {
+	bz, err := permissions.MarshalJSON()
+	if err != nil {
+		return err
+	}
+
+	// save permission with spender as byteKey
+	byteKey := []byte("permissions_" + spender)
+	storage.Set(byteKey, bz)
+
+	// save this byteKey to bigMap - update PERMISSIONS_MAP
+	data := storage.Get(PERMISSIONS_MAP)
+	if data == nil {
+		return errors.New("PERMISSIONS_MAP not found")
+	}
+
+	var bigMap contractTypes.BigMap
+	err = bigMap.UnmarshalJSON(data)
+	if err != nil {
+		return errors.New("bigMap not found")
+	}
+
+	bigMap.Keys[spender] = byteKey
+	bz, err = bigMap.MarshalJSON()
+	if err != nil {
+		return err
+	}
+	storage.Set(PERMISSIONS_MAP, bz)
+
+	return nil
+}
+
+func LoadAllowances(storage std.Storage, key string) (*contractTypes.Allowances, error) {
+	// Load storage for map
+	// Map should return a key
+	// Load storage for the value of that key
+	data := storage.Get(ALLOWANCES_MAP)
+	if data == nil {
+		return nil, errors.New("ALLOWANCES_MAP not found")
+	}
+
+	var bigMap contractTypes.BigMap
+	err := bigMap.UnmarshalJSON(data)
+	if err != nil {
+		return nil, errors.New("bigMap not found")
+	}
+
+	byteKey := bigMap.Keys[key]
+	if byteKey == nil {
+		return nil, errors.New("byteKey doesn't exist")
+	}
+
+	data = storage.Get(byteKey)
+	if data == nil {
+		return nil, errors.New("byteKey doesn't have any value")
+	}
+
+	var allowances contractTypes.Allowances
+	err = allowances.UnmarshalJSON(data)
+	if err != nil {
+		return nil, err
+	}
+	return &allowances, nil
+}
+
+func SaveAllowances(storage std.Storage, spender string, allowances *contractTypes.Allowances) error {
+	bz, err := allowances.MarshalJSON()
+	if err != nil {
+		return err
+	}
+
+	// save allowances with spender as byteKey
+	byteKey := []byte("allowances_" + spender)
+	storage.Set(byteKey, bz)
+
+	// save this byteKey to bigMap - load then update ALLOWANCES_MAP
+	data := storage.Get(ALLOWANCES_MAP)
+	if data == nil {
+		return errors.New("ALLOWANCES_MAP not found")
+	}
+
+	var bigMap contractTypes.BigMap
+	err = bigMap.UnmarshalJSON(data)
+	if err != nil {
+		return errors.New("bigMap not found")
+	}
+
+	bigMap.Keys[spender] = byteKey
+	bz, err = bigMap.MarshalJSON()
+	if err != nil {
+		return err
+	}
+	storage.Set(ALLOWANCES_MAP, bz)
+
+	return nil
+}
 
 func LoadContractInfo(storage std.Storage) (*contractTypes.ContractInfo, error) {
 	data := storage.Get(CONTRACT_INFO)
@@ -35,58 +165,6 @@ func SaveContractInfo(storage std.Storage, state *contractTypes.ContractInfo) er
 	}
 
 	storage.Set(CONTRACT_INFO, bz)
-
-	return nil
-}
-
-func LoadPermissions(storage std.Storage) (*contractTypes.Permissions, error) {
-	data := storage.Get(PERMISSIONS)
-	if data == nil {
-		return nil, errors.New("state not found") // TODO(fdymylja): replace when errors API is ready
-	}
-
-	var state contractTypes.Permissions
-	err := state.UnmarshalJSON(data)
-	if err != nil {
-		return nil, err
-	}
-
-	return &state, nil
-}
-
-func SavePermissions(storage std.Storage, state *contractTypes.Permissions) error {
-	bz, err := state.MarshalJSON()
-	if err != nil {
-		return err
-	}
-
-	storage.Set(PERMISSIONS, bz)
-
-	return nil
-}
-
-func LoadAllowances(storage std.Storage) (*contractTypes.Allowances, error) {
-	data := storage.Get(ALLOWANCES)
-	if data == nil {
-		return nil, errors.New("state not found")
-	}
-
-	var state contractTypes.Allowances
-	err := state.UnmarshalJSON(data)
-	if err != nil {
-		return nil, err
-	}
-
-	return &state, nil
-}
-
-func SaveAllowances(storage std.Storage, state *contractTypes.Allowances) error {
-	bz, err := state.MarshalJSON()
-	if err != nil {
-		return err
-	}
-
-	storage.Set(ALLOWANCES, bz)
 
 	return nil
 }
