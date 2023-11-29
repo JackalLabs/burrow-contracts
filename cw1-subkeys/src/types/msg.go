@@ -65,12 +65,12 @@ type UpdateAdminsRequest struct {
 type IncreaseAllowance struct {
 	Spender string
 	Amount  types.Coin
-	// Expires !todo
+	Expires Expiration
 }
 type DecreaseAllowance struct {
 	Spender string
 	Amount  types.Coin
-	// Expires !todo
+	Expires Expiration
 }
 type SetPermissions struct {
 	Spender     string

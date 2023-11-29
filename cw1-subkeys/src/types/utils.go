@@ -95,6 +95,21 @@ func (e Expiration) Add(d Duration) (Expiration, error) {
 	}
 }
 
+// Checks if the expiration is expired
+func (e Expiration) IsExpired(block types.BlockInfo) bool {
+	switch {
+	case e.AtHeight != 0:
+		return block.Height >= e.AtHeight
+	case !e.AtTime.IsZero():
+		blockTime := time.Unix(0, int64(block.Time))
+		return blockTime.After(e.AtTime)
+	default:
+		return false
+	}
+}
+
+// DURATION //
+
 // Create an expiration after current block
 func (d Duration) After(block types.BlockInfo) Expiration {
 	switch {
