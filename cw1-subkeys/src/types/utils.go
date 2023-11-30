@@ -61,6 +61,43 @@ func consolidateDuplicates(coins []types.Coin) {
 	coins = coins[:len(consolidated)]
 }
 
+// Find returns the index and coin with the given denom, or nil if not found.
+func (nb NativeBalance) Find(denom string) (int, *types.Coin) {
+	for i, c := range nb.Coins {
+		if c.Denom == denom {
+			return i, &c
+		}
+	}
+	return -1, nil
+}
+
+// InsertPos should only be called when denom is not in the wallet.
+// It returns the position where denom should be inserted at (via splice).
+// It returns -1 if this should be appended.
+func (nb NativeBalance) InsertPos(denom string) int {
+	for i, c := range nb.Coins {
+		if c.Denom >= denom {
+			return i
+		}
+	}
+	return -1
+}
+
+// AddAssign adds the given coin to NativeBalance.
+func (nb NativeBalance) AddAssign(other types.Coin) {
+	idx, c := nb.Find(other.Denom)
+	if c != nil {
+		nb.Coins[idx].Amount = c.Amount.Add(other.Amount)
+	} else {
+		pos := nb.InsertPos(other.Denom)
+		if pos != -1 {
+			nb.Coins = append(nb.Coins[:pos], append([]types.Coin{other}, nb.Coins[pos:]...)...)
+		} else {
+			nb.Coins = append(nb.Coins, other)
+		}
+	}
+}
+
 // EXPIRATION
 
 type Expiration struct {
