@@ -8,7 +8,6 @@ import (
 
 	"github.com/CosmWasm/cosmwasm-go/std"
 	"github.com/CosmWasm/cosmwasm-go/std/types"
-
 	cw1WhiteList "github.com/JackalLabs/burrow-contracts/cw1-whitelist/src"
 )
 
@@ -54,11 +53,18 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte)
 	// we need to find which one is non-empty
 	switch {
 	case msg.ExecuteRequest != nil:
-		return executeExecute(deps, &env, &info, msg.ExecuteRequest)
+		return cw1WhiteList.ExecuteExecute(deps, &env, &info, msg.ExecuteRequest)
 	case msg.FreezeRequest != nil:
-		return executeFreeze(deps, &env, &info, msg.FreezeRequest)
+		return cw1WhiteList.ExecuteFreeze(deps, &env, &info, msg.FreezeRequest)
 	case msg.UpdateAdminsRequest != nil:
-		return executeUpdateAdmins(deps, &env, &info, msg.UpdateAdminsRequest)
+		return cw1WhiteList.ExecuteUpdateAdmins(deps, &env, &info, msg.UpdateAdminsRequest)
+	case msg.IncreaseAllowance != nil:
+		return executeIncreaseAllowance()
+	case msg.DecreaseAllowance != nil:
+		return DecreaseAllowance()
+	case msg.SetPermissions != nil:
+		return SetPermissions()
+
 	default:
 		return nil, types.GenericError("Unknown ExecuteMsg")
 	}
@@ -93,85 +99,56 @@ func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 	return bz, nil
 }
 
-func executeExecute(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.ExecuteRequest) (*types.Response, error) {
+func executeIncreaseAllowance(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.IncreaseAllowance) (*types.Response, error) {
 	sender := info.Sender
-
-	state, err := LoadState(deps.Storage)
+	state, err := cw1WhiteList.LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
 	}
 
+	// check if sender is admin
 	if !state.IsAdmin(sender) {
 		return nil, errors.New("Unauthorized")
 	}
 
-	_ = env
-
-	var messages []types.SubMsg
-
-	for _, msg := range msg.Msgs {
-		newSub := types.NewSubMsg(msg)
-		messages = append(messages, newSub)
+	err = deps.Api.ValidateAddress(msg.Spender)
+	if err != nil {
+		return nil, err
 	}
 
+	// sender can't be spender
+	if msg.Spender == sender {
+		return nil, errors.New("Cannot Set Your own Account")
+	}
+
+	var allow contractTypes.Allowances
+	var emptyExpiration contractTypes.Expiration
+
+	prev, err := LoadAllowances(deps.Storage, msg.Spender)
+
+	if msg.Expires != emptyExpiration {
+		if msg.Expires.IsExpired(env.Block) {
+			return nil, errors.New("setting expired allowance")
+		}
+
+		allow.Expires = msg.Expires
+		allow.Balance = contractTypes.NativeBalance{
+			Coins: []types.Coin{msg.Amount},
+		}
+	} else if prev.Expires.IsExpired(env.Block) {
+		return nil, errors.New("setting expired allowance")
+	} else {
+		allow.Balance = prev.Balance.AddAssign(msg.Amount)
+	}
+
+	SaveAllowances(deps.Storage, msg.Spender, &allow)
 	res := &types.Response{
 		Attributes: []types.EventAttribute{
-			{Key: "action", Value: "execute"},
-		},
-		Messages: messages,
-	}
-	return res, nil
-}
-
-func executeFreeze(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.FreezeRequest) (*types.Response, error) {
-	sender := info.Sender
-
-	state, err := LoadState(deps.Storage)
-	if err != nil {
-		return nil, err
-	}
-
-	if !state.IsAdmin(sender) {
-		return nil, errors.New("Unauthorized")
-	}
-
-	state.Mutable = false
-
-	err = SaveState(deps.Storage, state)
-	if err != nil {
-		return nil, err
-	}
-
-	res := &types.Response{
-		Attributes: []types.EventAttribute{
-			{Key: "action", Value: "freeze"},
-		},
-	}
-	return res, nil
-}
-
-func executeUpdateAdmins(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.UpdateAdminsRequest) (*types.Response, error) {
-	sender := info.Sender
-
-	state, err := LoadState(deps.Storage)
-	if err != nil {
-		return nil, err
-	}
-
-	if !state.CanModify(sender) {
-		return nil, errors.New("Can't update admin list")
-	}
-
-	state.Admins = msg.Admins
-
-	err = SaveState(deps.Storage, state)
-	if err != nil {
-		return nil, err
-	}
-
-	res := &types.Response{
-		Attributes: []types.EventAttribute{
-			{Key: "action", Value: "update_admins"},
+			{Key: "action", Value: "increase_allowance"},
+			{Key: "owner", Value: sender},
+			{Key: "spender", Value: msg.Spender},
+			{Key: "denom", Value: msg.Amount.Denom},
+			{Key: "amount", Value: msg.Amount.Amount.String()},
 		},
 	}
 	return res, nil
