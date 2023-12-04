@@ -115,6 +115,22 @@ func (nb NativeBalance) SubSaturating(other types.Coin) (NativeBalance, error) {
 	return nb, nil
 }
 
+// Sub subtracts the given coin from NativeBalance.
+func (nb NativeBalance) Sub(other types.Coin) (NativeBalance, error) {
+	idx, c := nb.Find(other.Denom)
+	if c != nil {
+		remainder := c.Amount.Sub(other.Amount)
+		if remainder.IsZero() {
+			nb.Coins = append(nb.Coins[:idx], nb.Coins[idx+1:]...)
+		} else {
+			nb.Coins[idx].Amount = remainder
+		}
+	} else {
+		return NativeBalance{}, errors.New("overflow error")
+	}
+	return nb, nil
+}
+
 // EXPIRATION
 
 type Expiration struct {

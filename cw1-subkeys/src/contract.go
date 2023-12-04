@@ -53,7 +53,7 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte)
 	// we need to find which one is non-empty
 	switch {
 	case msg.ExecuteRequest != nil:
-		return cw1WhiteList.ExecuteExecute(deps, &env, &info, msg.ExecuteRequest)
+		return ExecuteExecute(deps, &env, &info, msg.ExecuteRequest)
 	case msg.FreezeRequest != nil:
 		return cw1WhiteList.ExecuteFreeze(deps, &env, &info, msg.FreezeRequest)
 	case msg.UpdateAdminsRequest != nil:
@@ -63,7 +63,7 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte)
 	case msg.DecreaseAllowance != nil:
 		return executeDecreaseAllowance(deps, &env, &info, msg.DecreaseAllowance)
 	case msg.SetPermissions != nil:
-		return SetPermissions()
+		return executeSetPermissions(deps, &env, &info, msg.SetPermissions)
 
 	default:
 		return nil, types.GenericError("Unknown ExecuteMsg")
@@ -81,7 +81,7 @@ func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 	var res std.JSONType
 	switch {
 	case msg.QueryAdminListRequest != nil:
-		res, err = queryAdminList(deps, &env, msg.QueryAdminListRequest)
+		res, err = cw1WhiteList.queryAdminList(deps, &env, msg.QueryAdminListRequest)
 	case msg.QueryCanExecuteRequest != nil:
 		res, err = queryCanExecute(deps, &env, msg.QueryCanExecuteRequest)
 	default:
@@ -97,6 +97,114 @@ func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 		return nil, err
 	}
 	return bz, nil
+}
+
+func ExecuteExecute(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.ExecuteRequest) (*types.Response, error) {
+	sender := info.Sender
+
+	state, err := cw1WhiteList.LoadState(deps.Storage)
+	if err != nil {
+		return nil, err
+	}
+
+	if !state.IsAdmin(sender) {
+		for _, msg := range msg.Msgs {
+			switch {
+
+			case msg.Staking != nil:
+				perm, err := LoadPermissions(deps.Storage, sender)
+				if err != nil {
+					return nil, errors.New("can't find perm")
+				}
+				checkStakingPermissions(msg.Staking, perm)
+
+			case msg.Distribution != nil:
+				perm, err := LoadPermissions(deps.Storage, sender)
+				if err != nil {
+					return nil, errors.New("can't find perm")
+				}
+				checkDistributionPermissions(msg.Distribution, perm)
+
+			case msg.Bank != nil:
+				allow, err := LoadAllowances(deps.Storage, sender)
+				if err != nil {
+					return nil, errors.New("can't find allowance")
+				}
+				if allow.Expires.IsExpired(env.Block) {
+					return nil, errors.New("Contract Error No Allowance")
+				}
+
+				// Decrease Allowance
+				allow.Balance, err = allow.Balance.Sub(msg.Bank.Send.Amount[0])
+				if err != nil {
+					return nil, errors.New("unable to decrease allowance")
+				}
+
+			default:
+				return nil, errors.New("Contract Error: Type Rejected")
+			}
+		}
+		return nil, errors.New("Unauthorized")
+	}
+
+	var messages []types.SubMsg
+
+	for _, msg := range msg.Msgs {
+		newSub := types.NewSubMsg(msg)
+		messages = append(messages, newSub)
+	}
+
+	res := &types.Response{
+		Attributes: []types.EventAttribute{
+			{Key: "action", Value: "execute"},
+			{Key: "owner", Value: sender},
+		},
+		Messages: messages,
+	}
+	return res, nil
+}
+
+func CheckStakingPermissions(stakingMsg *types.StakingMsg, permissions contractTypes.Permissions) error {
+	switch msg := stakingMsg.(type) {
+	case *types.DelegateMsg:
+		if !permissions.Delegate {
+			return errors.New("Contract Error: Delegate Perm")
+		}
+
+	case *types.UndelegateMsg:
+		if !permissions.Undelegate {
+			return errors.New("Contract Error: Undelegate Perm")
+		}
+
+	case *types.RedelegateMsg:
+		if !permissions.Redelegate {
+			return errors.New("Contract Error: Redelegate Perm")
+		}
+
+	default:
+		return errors.New("Contract Error: Unsupported Message")
+	}
+
+	return nil
+}
+
+func CheckDistributionPermissions(distributionMsg *types.DistributionMsg, permissions Permissions) error {
+	switch msg := distributionMsg.(type) {
+	case *types.SetWithdrawAddressMsg:
+		if !permissions.Withdraw {
+			return errors.New("Contract Error: Withdraw Addr Perm")
+		}
+
+	case *types.WithdrawDelegatorRewardMsg:
+		if !permissions.Withdraw {
+			return errors.New("Contract Error: Withdraw Perm")
+		}
+
+	default:
+		return errors.New("Contract Error: Unsupported Message")
+	}
+
+	return nil
 }
 
 func executeIncreaseAllowance(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.IncreaseAllowance) (*types.Response, error) {
