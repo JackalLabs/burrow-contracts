@@ -209,6 +209,41 @@ func executeDecreaseAllowance(deps *std.Deps, env *types.Env, info *types.Messag
 	return res, nil
 }
 
+func executeSetPermissions(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.SetPermissions) (*types.Response, error) {
+	sender := info.Sender
+	state, err := cw1WhiteList.LoadState(deps.Storage)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if sender is admin
+	if !state.IsAdmin(sender) {
+		return nil, errors.New("Unauthorized")
+	}
+
+	err = deps.Api.ValidateAddress(msg.Spender)
+	if err != nil {
+		return nil, err
+	}
+
+	// sender can't be spender
+	if msg.Spender == sender {
+		return nil, errors.New("Cannot Set Your own Account")
+	}
+
+	SavePermissions(deps.Storage, msg.Spender, &msg.Permissions)
+
+	res := &types.Response{
+		Attributes: []types.EventAttribute{
+			{Key: "action", Value: "set_permissions"},
+			{Key: "owner", Value: sender},
+			{Key: "spender", Value: msg.Spender},
+		},
+	}
+
+	return res, nil
+}
+
 func queryAdminList(deps *std.Deps, env *types.Env, msg *contractTypes.QueryAdminListRequest) (*contractTypes.AdminListResponse, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
