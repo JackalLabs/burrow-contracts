@@ -59,9 +59,9 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte)
 	case msg.UpdateAdminsRequest != nil:
 		return cw1WhiteList.ExecuteUpdateAdmins(deps, &env, &info, msg.UpdateAdminsRequest)
 	case msg.IncreaseAllowance != nil:
-		return executeIncreaseAllowance()
+		return executeIncreaseAllowance(deps, &env, &info, msg.IncreaseAllowance)
 	case msg.DecreaseAllowance != nil:
-		return DecreaseAllowance()
+		return executeDecreaseAllowance(deps, &env, &info, msg.DecreaseAllowance)
 	case msg.SetPermissions != nil:
 		return SetPermissions()
 
@@ -145,6 +145,61 @@ func executeIncreaseAllowance(deps *std.Deps, env *types.Env, info *types.Messag
 	res := &types.Response{
 		Attributes: []types.EventAttribute{
 			{Key: "action", Value: "increase_allowance"},
+			{Key: "owner", Value: sender},
+			{Key: "spender", Value: msg.Spender},
+			{Key: "denom", Value: msg.Amount.Denom},
+			{Key: "amount", Value: msg.Amount.Amount.String()},
+		},
+	}
+	return res, nil
+}
+
+func executeDecreaseAllowance(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *contractTypes.DecreaseAllowance) (*types.Response, error) {
+	sender := info.Sender
+	state, err := cw1WhiteList.LoadState(deps.Storage)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if sender is admin
+	if !state.IsAdmin(sender) {
+		return nil, errors.New("Unauthorized")
+	}
+
+	err = deps.Api.ValidateAddress(msg.Spender)
+	if err != nil {
+		return nil, err
+	}
+
+	// sender can't be spender
+	if msg.Spender == sender {
+		return nil, errors.New("Cannot Set Your own Account")
+	}
+
+	var allow contractTypes.Allowances
+	var emptyExpiration contractTypes.Expiration
+
+	prev, err := LoadAllowances(deps.Storage, msg.Spender)
+
+	if msg.Expires != emptyExpiration {
+		if msg.Expires.IsExpired(env.Block) {
+			return nil, errors.New("setting expired allowance")
+		}
+
+		allow.Expires = msg.Expires
+		allow.Balance = contractTypes.NativeBalance{
+			Coins: []types.Coin{msg.Amount},
+		}
+	} else if prev.Expires.IsExpired(env.Block) {
+		return nil, errors.New("setting expired allowance")
+	} else {
+		allow.Balance, _ = prev.Balance.SubSaturating(msg.Amount)
+	}
+
+	SaveAllowances(deps.Storage, msg.Spender, &allow)
+	res := &types.Response{
+		Attributes: []types.EventAttribute{
+			{Key: "action", Value: "decrease_allowance"},
 			{Key: "owner", Value: sender},
 			{Key: "spender", Value: msg.Spender},
 			{Key: "denom", Value: msg.Amount.Denom},

@@ -84,10 +84,11 @@ func (nb NativeBalance) InsertPos(denom string) int {
 }
 
 // AddAssign adds the given coin to NativeBalance.
-func (nb NativeBalance) AddAssign(other types.Coin) {
+func (nb NativeBalance) AddAssign(other types.Coin) NativeBalance {
 	idx, c := nb.Find(other.Denom)
 	if c != nil {
 		nb.Coins[idx].Amount = c.Amount.Add(other.Amount)
+		return nb
 	} else {
 		pos := nb.InsertPos(other.Denom)
 		if pos != -1 {
@@ -96,6 +97,22 @@ func (nb NativeBalance) AddAssign(other types.Coin) {
 			nb.Coins = append(nb.Coins, other)
 		}
 	}
+	return nb
+}
+
+// SubSaturating is similar to Balance.Sub, but doesn't fail when minuend is less than subtrahend.
+func (nb NativeBalance) SubSaturating(other types.Coin) (NativeBalance, error) {
+	idx, c := nb.Find(other.Denom)
+	if c != nil {
+		if c.Amount.LTE(other.Amount) {
+			nb.Coins = append(nb.Coins[:idx], nb.Coins[idx+1:]...)
+		} else {
+			nb.Coins[idx].Amount = c.Amount.Sub(other.Amount)
+		}
+	} else {
+		return NativeBalance{}, errors.New("overflow error")
+	}
+	return nb, nil
 }
 
 // EXPIRATION
