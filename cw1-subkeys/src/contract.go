@@ -81,7 +81,7 @@ func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 	var res std.JSONType
 	switch {
 	case msg.QueryAdminListRequest != nil:
-		res, err = cw1WhiteList.queryAdminList(deps, &env, msg.QueryAdminListRequest)
+		res, err = cw1WhiteList.QueryAdminList(deps, &env, msg.QueryAdminListRequest)
 	case msg.QueryCanExecuteRequest != nil:
 		res, err = queryCanExecute(deps, &env, msg.QueryCanExecuteRequest)
 	default:
@@ -116,14 +116,14 @@ func ExecuteExecute(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg
 				if err != nil {
 					return nil, errors.New("can't find perm")
 				}
-				checkStakingPermissions(msg.Staking, perm)
+				CheckStakingPermissions(msg.Staking, *perm)
 
 			case msg.Distribution != nil:
 				perm, err := LoadPermissions(deps.Storage, sender)
 				if err != nil {
 					return nil, errors.New("can't find perm")
 				}
-				checkDistributionPermissions(msg.Distribution, perm)
+				CheckDistributionPermissions(msg.Distribution, *perm)
 
 			case msg.Bank != nil:
 				allow, err := LoadAllowances(deps.Storage, sender)
@@ -188,7 +188,7 @@ func CheckStakingPermissions(stakingMsg *types.StakingMsg, permissions contractT
 	return nil
 }
 
-func CheckDistributionPermissions(distributionMsg *types.DistributionMsg, permissions Permissions) error {
+func CheckDistributionPermissions(distributionMsg *types.DistributionMsg, permissions contractTypes.Permissions) error {
 	switch msg := distributionMsg.(type) {
 	case *types.SetWithdrawAddressMsg:
 		if !permissions.Withdraw {

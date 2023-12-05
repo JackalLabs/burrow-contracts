@@ -10,9 +10,9 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
-	github.com/CosmWasm/wasmvm v1.0.0-rc.0 // indirect
+	github.com/CosmWasm/wasmvm v1.5.0 // indirect
 	github.com/DataDog/zstd v1.4.5 // indirect
-	github.com/JackalLabs/burrow-contracts/cw1-whitelist v0.0.0-20231115105309-d251ebb5dc7c
+	github.com/JackalLabs/burrow-contracts/cw1-whitelist v0.0.0-20231205061702-30b3aa82f535
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cosmos/gorocksdb v1.2.0 // indirect

@@ -7,11 +7,15 @@ github.com/CosmWasm/tinyjson v0.9.0 h1:sPjgikATp5W0vD/v/Qz99uQ6G/lh/SuK0Wfskqua4
 github.com/CosmWasm/tinyjson v0.9.0/go.mod h1:5+7QnSKrkIWnpIdhUT2t2EYzXnII3/3MlM0oDsBSbc8=
 github.com/CosmWasm/wasmvm v1.0.0-rc.0 h1:YI0ytwQZewPhSNxlqsrZ3/bVKTYXmrR1bfVapleCXWk=
 github.com/CosmWasm/wasmvm v1.0.0-rc.0/go.mod h1:ei0xpvomwSdONsxDuONzV7bL1jSET1M8brEx0FCXc+A=
+github.com/CosmWasm/wasmvm v1.5.0 h1:3hKeT9SfwfLhxTGKH3vXaKFzBz1yuvP8SlfwfQXbQfw=
+github.com/CosmWasm/wasmvm v1.5.0/go.mod h1:fXB+m2gyh4v9839zlIXdMZGeLAxqUdYdFQqYsTha2hc=
 github.com/DataDog/zstd v1.4.1/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
 github.com/DataDog/zstd v1.4.5 h1:EndNeuB0l9syBZhut0wns3gV1hL8zX8LIu6ZiVHWLIQ=
 github.com/DataDog/zstd v1.4.5/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
 github.com/JackalLabs/burrow-contracts/cw1-whitelist v0.0.0-20231115105309-d251ebb5dc7c h1:Xl2Rt1XquJG0Uf6W/WwjsSqWtGRC8NQeX78tJsK3xbU=
 github.com/JackalLabs/burrow-contracts/cw1-whitelist v0.0.0-20231115105309-d251ebb5dc7c/go.mod h1:FfibolByNdFMUc1F4V55m+YGDTN4LjtALuzY9aqIjn8=
+github.com/JackalLabs/burrow-contracts/cw1-whitelist v0.0.0-20231205061702-30b3aa82f535 h1:Jx7GZfyteOsvIqx8dg2Mij49Tl4VRKdkT0pUj8uzoPw=
+github.com/JackalLabs/burrow-contracts/cw1-whitelist v0.0.0-20231205061702-30b3aa82f535/go.mod h1:FfibolByNdFMUc1F4V55m+YGDTN4LjtALuzY9aqIjn8=
 github.com/OneOfOne/xxhash v1.2.2 h1:KMrpdQIwFcEqXDklaen+P1axHaj9BSKzvpUUfnHldSE=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=

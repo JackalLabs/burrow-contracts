@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	"github.com/CosmWasm/cosmwasm-go/std/types"
+	cw1WhiteListTypes "github.com/JackalLabs/burrow-contracts/cw1-whitelist/src/types"
 )
 
 type ExecuteMsg struct {
@@ -13,11 +14,11 @@ type ExecuteMsg struct {
 	ExecuteRequest *ExecuteRequest `json:"execute,omitempty"`
 
 	/// Freeze will make a mutable contract immutable, must be called by an admin
-	FreezeRequest *FreezeRequest `json:"freeze,omitempty"`
+	FreezeRequest *cw1WhiteListTypes.FreezeRequest `json:"freeze,omitempty"`
 
 	/// UpdateAdmins will change the admin set of the contract, must be called by an existing admin,
 	/// and only works if the contract is mutable
-	UpdateAdminsRequest *UpdateAdminsRequest `json:"update_admins,omitempty"`
+	UpdateAdminsRequest *cw1WhiteListTypes.UpdateAdminsRequest `json:"update_admins,omitempty"`
 
 	/// Add an allowance to a given subkey (subkey must not be admin)
 	IncreaseAllowance *IncreaseAllowance `json:"increase_allowance,omitempty"`
@@ -55,8 +56,6 @@ type QueryMsg struct {
 type ExecuteRequest struct {
 	Msgs []types.CosmosMsg `json:"msgs,omitempty"`
 }
-
-type FreezeRequest struct{}
 
 type UpdateAdminsRequest struct {
 	Admins []string `json:"admins,omitempty"`
