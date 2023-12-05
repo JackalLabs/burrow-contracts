@@ -165,18 +165,18 @@ func ExecuteExecute(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg
 }
 
 func CheckStakingPermissions(stakingMsg *types.StakingMsg, permissions contractTypes.Permissions) error {
-	switch msg := stakingMsg.(type) {
-	case *types.DelegateMsg:
+	switch {
+	case stakingMsg.Delegate != nil:
 		if !permissions.Delegate {
 			return errors.New("Contract Error: Delegate Perm")
 		}
 
-	case *types.UndelegateMsg:
+	case stakingMsg.Undelegate != nil:
 		if !permissions.Undelegate {
 			return errors.New("Contract Error: Undelegate Perm")
 		}
 
-	case *types.RedelegateMsg:
+	case stakingMsg.Redelegate != nil:
 		if !permissions.Redelegate {
 			return errors.New("Contract Error: Redelegate Perm")
 		}
@@ -189,13 +189,13 @@ func CheckStakingPermissions(stakingMsg *types.StakingMsg, permissions contractT
 }
 
 func CheckDistributionPermissions(distributionMsg *types.DistributionMsg, permissions contractTypes.Permissions) error {
-	switch msg := distributionMsg.(type) {
-	case *types.SetWithdrawAddressMsg:
+	switch {
+	case distributionMsg.SetWithdrawAddress != nil:
 		if !permissions.Withdraw {
 			return errors.New("Contract Error: Withdraw Addr Perm")
 		}
 
-	case *types.WithdrawDelegatorRewardMsg:
+	case distributionMsg.WithdrawDelegatorReward != nil:
 		if !permissions.Withdraw {
 			return errors.New("Contract Error: Withdraw Perm")
 		}
@@ -352,32 +352,58 @@ func executeSetPermissions(deps *std.Deps, env *types.Env, info *types.MessageIn
 	return res, nil
 }
 
-func queryAdminList(deps *std.Deps, env *types.Env, msg *contractTypes.QueryAdminListRequest) (*contractTypes.AdminListResponse, error) {
-	state, err := LoadState(deps.Storage)
-	if err != nil {
-		return nil, err
-	}
-
-	_ = env
-	_ = msg
-
-	return &contractTypes.AdminListResponse{
-		Admins:  state.Admins,
-		Mutable: state.Mutable,
-	}, nil
-}
-
 func queryCanExecute(deps *std.Deps, env *types.Env, msg *contractTypes.QueryCanExecuteRequest) (*contractTypes.CanExecuteResponse, error) {
-	state, err := LoadState(deps.Storage)
+	state, err := cw1WhiteList.LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
 	}
 
-	can := state.IsAdmin(msg.Sender)
+	if state.IsAdmin(msg.Sender) {
+		return &contractTypes.CanExecuteResponse{
+			CanExecute: true,
+		}, nil
+	}
 
-	_ = env
+	sender := msg.Sender
+	cosmosMsg := msg.Msg
+
+	var can bool
+	var resErr error
+
+	switch {
+	case cosmosMsg.Staking != nil:
+		perm, err := LoadPermissions(deps.Storage, sender)
+		if err != nil {
+			can = false
+			resErr = err
+		}
+		if CheckStakingPermissions(cosmosMsg.Staking, *perm) != nil {
+			can = true
+		}
+
+	case cosmosMsg.Distribution != nil:
+		perm, err := LoadPermissions(deps.Storage, sender)
+		if err != nil {
+			can = false
+			resErr = err
+		}
+		if CheckDistributionPermissions(cosmosMsg.Distribution, *perm) != nil {
+			can = true
+		}
+
+	case cosmosMsg.Bank.Send != nil:
+		allow, err := LoadAllowances(deps.Storage, sender)
+		if err != nil {
+			can = false
+			resErr = err
+		}
+		if !allow.Expires.IsExpired(env.Block) {
+			can = true
+			resErr = err
+		}
+	}
 
 	return &contractTypes.CanExecuteResponse{
 		CanExecute: can,
-	}, nil
+	}, resErr
 }

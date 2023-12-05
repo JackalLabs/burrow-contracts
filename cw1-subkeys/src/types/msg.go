@@ -32,7 +32,7 @@ type ExecuteMsg struct {
 
 type QueryMsg struct {
 	/// Shows all admins and whether or not it is mutable
-	QueryAdminListRequest *QueryAdminListRequest `json:"admin_list,omitempty"`
+	QueryAdminListRequest *cw1WhiteListTypes.QueryAdminListRequest `json:"admin_list,omitempty"`
 
 	/// Checks permissions of the caller on this proxy.
 	/// If CanExecute returns true then a call to `Execute` with the same message,
@@ -75,8 +75,6 @@ type SetPermissions struct {
 	Spender     string
 	Permissions Permissions
 }
-
-type QueryAdminListRequest struct{}
 
 type QueryCanExecuteRequest struct {
 	Sender string          `json:"sender,omitempty"`
