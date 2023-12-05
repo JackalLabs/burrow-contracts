@@ -72,7 +72,7 @@ func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 	var res std.JSONType
 	switch {
 	case msg.QueryAdminListRequest != nil:
-		res, err = queryAdminList(deps, &env, msg.QueryAdminListRequest)
+		res, err = QueryAdminList(deps, &env, msg.QueryAdminListRequest)
 	case msg.QueryCanExecuteRequest != nil:
 		res, err = queryCanExecute(deps, &env, msg.QueryCanExecuteRequest)
 	default:
@@ -174,7 +174,7 @@ func ExecuteUpdateAdmins(deps *std.Deps, env *types.Env, info *types.MessageInfo
 	return res, nil
 }
 
-func queryAdminList(deps *std.Deps, env *types.Env, msg *contractTypes.QueryAdminListRequest) (*contractTypes.AdminListResponse, error) {
+func QueryAdminList(deps *std.Deps, env *types.Env, msg *contractTypes.QueryAdminListRequest) (*contractTypes.AdminListResponse, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
