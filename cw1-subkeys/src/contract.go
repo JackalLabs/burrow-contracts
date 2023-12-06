@@ -2,6 +2,7 @@ package src
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	contractTypes "github.com/JackalLabs/burrow-contracts/cw1-subkeys/src/types"
@@ -23,9 +24,12 @@ func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, data []b
 	// !toreview https://github.com/CosmWasm/cw-plus/blob/main/contracts/cw1-subkeys/src/contract.rs#L33-L44
 	name := "cw1-subkeys"
 	version := os.Getenv("PKG_VERSION")
+
 	if len(version) == 0 {
-		panic("No pkg version found")
+		fmt.Println("No pkg version in .env")
+		version = "0.1.0"
 	}
+
 	SetContractVersion(deps, name, version)
 
 	return res, nil
@@ -84,6 +88,16 @@ func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 		res, err = cw1WhiteList.QueryAdminList(deps, &env, msg.QueryAdminListRequest)
 	case msg.QueryCanExecuteRequest != nil:
 		res, err = queryCanExecute(deps, &env, msg.QueryCanExecuteRequest)
+	case msg.QueryAllowance != nil:
+		res, err = queryAllowance(deps, &env, msg.QueryAllowance)
+	case msg.QueryPermissions != nil:
+		res, err = queryPermissions(deps, &env, msg.QueryPermissions)
+
+	case msg.QueryAllAllowance != nil:
+		res, err = queryAllAllowance(deps, &env, msg.QueryAllAllowance)
+	case msg.QueryPermissions != nil:
+		res, err = queryAllPermissions(deps, &env, msg.QueryAllPermissions)
+
 	default:
 		err = types.GenericError("Unknown QueryMsg " + string(data))
 	}
@@ -406,4 +420,78 @@ func queryCanExecute(deps *std.Deps, env *types.Env, msg *contractTypes.QueryCan
 	return &contractTypes.CanExecuteResponse{
 		CanExecute: can,
 	}, resErr
+}
+
+func queryAllowance(deps *std.Deps, env *types.Env, msg *contractTypes.QueryAllowance) (*contractTypes.Allowances, error) {
+	allow, err := LoadAllowances(deps.Storage, msg.Spender)
+	if err != nil {
+		return nil, err
+	}
+
+	return &contractTypes.Allowances{
+		Balance: allow.Balance,
+		Expires: allow.Expires,
+	}, nil
+}
+
+func queryPermissions(deps *std.Deps, env *types.Env, msg *contractTypes.QueryPermissions) (*contractTypes.Permissions, error) {
+	perm, err := LoadPermissions(deps.Storage, msg.Spender)
+	if err != nil {
+		return nil, err
+	}
+
+	return &contractTypes.Permissions{
+		Delegate:   perm.Delegate,
+		Redelegate: perm.Redelegate,
+		Undelegate: perm.Undelegate,
+		Withdraw:   perm.Withdraw,
+	}, nil
+}
+
+const (
+	MAX_LIMIT     uint32 = 30
+	DEFAULT_LIMIT uint32 = 10
+)
+
+func calcLimit(request *uint32) int {
+	if request == nil {
+		return int(DEFAULT_LIMIT)
+	}
+
+	limit := *request
+	if limit > MAX_LIMIT {
+		return int(MAX_LIMIT)
+	}
+
+	return int(limit)
+}
+
+func queryAllAllowance(deps *std.Deps, env *types.Env, msg *contractTypes.QueryAllAllowance) (*contractTypes.AllAllowancesResponse, error) {
+	limitValue := calcLimit(&msg.Limit)
+
+	// if msg.StartAfter != "" {
+	// 	start := &msg.StartAfter
+	// }
+
+	allAllow, err := LoadAllAllowances(deps.Storage, limitValue)
+	if err != nil {
+		return nil, err
+	}
+
+	return allAllow, nil
+}
+
+func queryAllPermissions(deps *std.Deps, env *types.Env, msg *contractTypes.QueryAllPermissions) (*contractTypes.AllPermissionsResponse, error) {
+	limitValue := calcLimit(&msg.Limit)
+
+	// if msg.StartAfter != "" {
+	// 	start := &msg.StartAfter
+	// }
+
+	allPerm, err := LoadAllPermissions(deps.Storage, limitValue)
+	if err != nil {
+		return nil, err
+	}
+
+	return allPerm, nil
 }

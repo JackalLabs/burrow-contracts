@@ -2,6 +2,7 @@ package src
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/CosmWasm/cosmwasm-go/std"
 	contractTypes "github.com/JackalLabs/burrow-contracts/cw1-subkeys/src/types"
@@ -141,6 +142,93 @@ func SaveAllowances(storage std.Storage, spender string, allowances *contractTyp
 	storage.Set(ALLOWANCES_MAP, bz)
 
 	return nil
+}
+
+func LoadAllAllowances(storage std.Storage, limit int) (*contractTypes.AllAllowancesResponse, error) {
+	// load big map that contains all the keys to the allowances
+	data := storage.Get(ALLOWANCES_MAP)
+	if data == nil {
+		return nil, errors.New("ALLOWANCES_MAP not found")
+	}
+
+	var bigMap contractTypes.BigMap
+	err := bigMap.UnmarshalJSON(data)
+	if err != nil {
+		return nil, errors.New("bigMap not found")
+	}
+
+	var allAllow contractTypes.AllAllowancesResponse
+
+	for i, byteKey := range bigMap.Keys {
+		if i == strconv.Itoa(limit) {
+			break
+		}
+		// load a single allowance now
+		data = storage.Get(byteKey)
+		if data == nil {
+			return nil, errors.New("byteKey doesn't have any value")
+		}
+
+		var allow contractTypes.Allowances
+		err = allow.UnmarshalJSON(data)
+		if err != nil {
+			return nil, err
+		}
+
+		allowInfo := contractTypes.AllowanceInfo{
+			Spender: i,
+			Balance: allow.Balance,
+			Expires: allow.Expires,
+		}
+
+		// add allowance to all allowances
+		allAllow.Allowances = append(allAllow.Allowances, allowInfo)
+	}
+
+	return &allAllow, nil
+}
+
+func LoadAllPermissions(storage std.Storage, limit int) (*contractTypes.AllPermissionsResponse, error) {
+	// load big map that contains all the keys to the permissions
+	data := storage.Get(PERMISSIONS_MAP)
+	if data == nil {
+		return nil, errors.New("PERMISSIONS_MAP not found")
+	}
+
+	var bigMap contractTypes.BigMap
+	err := bigMap.UnmarshalJSON(data)
+	if err != nil {
+		return nil, errors.New("bigMap not found")
+	}
+
+	var allPerm contractTypes.AllPermissionsResponse
+
+	for i, byteKey := range bigMap.Keys {
+		if i == strconv.Itoa(limit) {
+			break
+		}
+		// load a single permissions now
+		data = storage.Get(byteKey)
+		if data == nil {
+			return nil, errors.New("byteKey doesn't have any value")
+		}
+
+		var perm contractTypes.Permissions
+		err = perm.UnmarshalJSON(data)
+		if err != nil {
+			return nil, err
+		}
+
+		permInfo := contractTypes.PermissionInfo{
+			Spender:     i,
+			Permissions: perm,
+		}
+
+		// add allowance to all allowances
+		allPerm.Permissions = append(allPerm.Permissions, permInfo)
+	}
+
+	return &allPerm, nil
 }
 
 func LoadContractInfo(storage std.Storage) (*contractTypes.ContractInfo, error) {
